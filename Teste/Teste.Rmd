@@ -1,0 +1,178 @@
+---
+title: "Dados de uma empresa"
+author: "Eduardo Vinnícius (evdcn) e Brenda ... ()"
+runtime: shiny
+output: 
+  flexdashboard::flex_dashboard:
+    orientation: columns
+    vertical_layout: fill
+
+---
+
+```{r setup, include=FALSE}
+library(flexdashboard)
+library(dplyr)
+library(ggplot2)
+library(readr)
+library(DT)
+library(tidyverse)
+library(plotly)
+
+Dados_empresa <- read.csv("Month_Value_1.csv")
+
+mode <- function(codes){
+  which.max(tabulate(codes))
+}
+
+
+```
+
+# Barra lateral {.sidebar}
+
+```{r}
+
+selectInput(inputId = "tempo", label = "Ano",
+  choices = c("2015", "2016", "2017", "2018", "2019", "2020", "Todos"), selected = "2018")
+
+dados <- reactive({
+  Dados_empresa2 <- Dados_empresa %>% 
+           filter(str_detect(tempo, ifelse(input$tempo == 'Todos',"",input$tempo)))
+   return(Dados_empresa2) })
+
+```
+
+# Receita {data-navmenu="Visualizações"}
+
+## Receita {.tabset}
+
+### Boxplot
+
+```{r}
+
+Dados_empresa %>% 
+  #filter(str_detect(Período, !!sym(input$tempo))) %>%
+  ggplot() + 
+  aes(y = Receita, fill = Mês) +
+  geom_boxplot (fill = "red")
+  theme(legend.position = "top")
+
+```
+
+### Tabela
+
+```{r}
+Dados_empresa %>%
+  group_by(Ano) %>%
+  summarise(Média = mean(Receita),
+            Mediana = median(Receita),
+            Moda= mode(Receita),
+            Desvio_Padrão = sd(Receita)) %>%
+  knitr::kable()
+
+```
+
+
+# Vendas {data-navmenu="Visualizações"} 
+
+## Vendas {.tabset}
+
+### Histrograma 
+
+```{r}
+renderPlotly({
+histograma = ggplot(data = dados(),
+                    aes(x=Vendas,fill=Mês)) + 
+  geom_histogram() 
+ggplotly(histograma)
+})
+```
+
+
+### Boxplot
+
+### Tabela
+
+```{r}
+
+Dados_empresa %>%
+  group_by(Ano) %>%
+  summarise(Média = mean(Número_de_vendas),
+            Mediana = median(Número_de_vendas),
+            Moda= mode(Número_de_vendas),
+            Desvio_Padrão = sd(Número_de_vendas)) %>%
+  knitr::kable()
+
+```
+# Custo Médio {data-navmenu="Visualizações"}
+
+## Custo Médio  {.tabset}
+
+### Boxplot
+
+### Tabela
+
+```{r}
+Dados_empresa %>%
+  group_by(Ano) %>%
+  summarise(Média = mean(Custo_médio),
+            Mediana = median(Custo_médio),
+            Moda= mode(Custo_médio),
+            Desvio_Padrão = sd(Custo_médio)) %>%
+  knitr::kable()
+```
+# Gasto com Funcionários {data-navmenu="Visualizações"}
+
+## Gasto com Funcionários {.tabset}
+
+### Boxplot
+
+### Tabela
+
+```{r}
+Dados_empresa %>%
+  group_by(Ano) %>%
+  summarise(Média = mean(Folha_de_pagamento_média_anual),
+            Mediana = median(Folha_de_pagamento_média_anual),
+            Moda= mode(Folha_de_pagamento_média_anual),
+            Desvio_Padrão = sd(Folha_de_pagamento_média_anual)) %>%
+  knitr::kable()
+```
+
+# Comparações {data-icon="fa-table"}
+
+## Barra Lateral {.sidebar}
+
+```{r}
+
+```
+
+## Column {data-width= 1080} {.tabset}
+
+### Tabela
+
+```{r}
+
+renderTable({
+  head(Dados_empresa2, n = input$rows)
+})
+
+```
+
+### Gráfico de barras
+
+```{r}
+
+```
+
+### Gráfico de linhas
+
+```{r}
+
+```
+
+### Scatterplot
+
+```{r}
+
+```
+
