@@ -10,6 +10,7 @@ output:
 ---
 
 ```{r setup, include=FALSE}
+
 library(flexdashboard)
 library(dplyr)
 library(ggplot2)
@@ -31,13 +32,8 @@ mode <- function(codes){
 
 ```{r}
 
-selectInput(inputId = "tempo", label = "Ano",
+selectInput("tempo", label = "Ano",
   choices = c("2015", "2016", "2017", "2018", "2019", "2020", "Todos"), selected = "2018")
-
-dados <- reactive({
-  Dados_empresa2 <- Dados_empresa %>% 
-           filter(str_detect(tempo, ifelse(input$tempo == 'Todos',"",input$tempo)))
-   return(Dados_empresa2) })
 
 ```
 
@@ -45,16 +41,42 @@ dados <- reactive({
 
 ## Receita {.tabset}
 
+### Gráfico de linhas
+
+```{r}
+Dados_empresa %>%
+  #Quando eu faço por mês, não funciona a linha - provavelmente porque o ano não está filtrado
+  group_by(Mês) %>%
+  #Teria que dar filter por ano
+    summarise(Receita_media = mean(Receita, na.rm = TRUE)) %>% 
+    ggplot() +
+    geom_line(aes(x = Mês, y = Receita_media)) 
+    #geom_point(aes(x = Mês, y = Receita_media))
+```
+
+### Histograma
+
+```{r}
+Dados_empresa %>%
+  #Não sei como dar o input ao filter
+  #dados <- input$tempo
+  #filter(dados == Ano) %>%
+  ggplot() +
+  geom_histogram(
+    aes(x = Receita), 
+    binwidth = 12,
+    color = "red"
+  )
+```
+
+
 ### Boxplot
 
 ```{r}
-
 Dados_empresa %>% 
-  #filter(str_detect(Período, !!sym(input$tempo))) %>%
-  ggplot() + 
-  aes(y = Receita, fill = Mês) +
-  geom_boxplot (fill = "red")
-  theme(legend.position = "top")
+  group_by(Mês) %>% 
+  ggplot() +
+  geom_boxplot(aes(x = Mês, y = Receita))
 
 ```
 
@@ -66,7 +88,9 @@ Dados_empresa %>%
   summarise(Média = mean(Receita),
             Mediana = median(Receita),
             Moda= mode(Receita),
-            Desvio_Padrão = sd(Receita)) %>%
+            Desvio_Padrão = sd(Receita),
+            Mínimo = min(Receita),
+            Máximo = max(Receita)) %>%
   knitr::kable()
 
 ```
@@ -80,10 +104,15 @@ Dados_empresa %>%
 
 ```{r}
 renderPlotly({
-histograma = ggplot(data = dados(),
-                    aes(x=Vendas,fill=Mês)) + 
-  geom_histogram() 
-ggplotly(histograma)
+  grafico = ggplot(
+  
+  data = Dados_empresa %>% 
+         filter(str_detect(tempo, ifelse(input$tempo == 'Todos',"",input$tempo))),
+  
+        aes(x=Mês, y=Número_de_vendas, color = tempo)) + 
+        geom_point()
+  
+ggplotly(grafico)
 })
 ```
 
@@ -99,7 +128,9 @@ Dados_empresa %>%
   summarise(Média = mean(Número_de_vendas),
             Mediana = median(Número_de_vendas),
             Moda= mode(Número_de_vendas),
-            Desvio_Padrão = sd(Número_de_vendas)) %>%
+            Desvio_Padrão = sd(Número_de_vendas),
+            Mínimo = min(Número_de_vendas),
+            Máximo = max(Número_de_vendas)) %>%
   knitr::kable()
 
 ```
@@ -117,7 +148,9 @@ Dados_empresa %>%
   summarise(Média = mean(Custo_médio),
             Mediana = median(Custo_médio),
             Moda= mode(Custo_médio),
-            Desvio_Padrão = sd(Custo_médio)) %>%
+            Desvio_Padrão = sd(Custo_médio),
+            Mínimo = min(Custo_médio),
+            Máximo = max(Custo_médio)) %>%
   knitr::kable()
 ```
 # Gasto com Funcionários {data-navmenu="Visualizações"}
@@ -134,7 +167,9 @@ Dados_empresa %>%
   summarise(Média = mean(Folha_de_pagamento_média_anual),
             Mediana = median(Folha_de_pagamento_média_anual),
             Moda= mode(Folha_de_pagamento_média_anual),
-            Desvio_Padrão = sd(Folha_de_pagamento_média_anual)) %>%
+            Desvio_Padrão = sd(Folha_de_pagamento_média_anual),
+            Mínimo = min(Folha_de_pagamento_média_anual),
+            Máximo = max(Folha_de_pagamento_média_anual)) %>%
   knitr::kable()
 ```
 
@@ -153,7 +188,7 @@ Dados_empresa %>%
 ```{r}
 
 renderTable({
-  head(Dados_empresa2, n = input$rows)
+  head(Dados_empresa, n = input$rows)
 })
 
 ```
