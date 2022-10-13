@@ -1,0 +1,229 @@
+---
+title: "Dados de uma empresa"
+author: "Eduardo Vinnícius (evdcn) e Brenda ... ()"
+runtime: shiny
+output: 
+  flexdashboard::flex_dashboard:
+    orientation: columns
+    vertical_layout: fill
+
+---
+
+```{r setup, include=FALSE}
+
+library(flexdashboard)
+library(dplyr)
+library(ggplot2)
+library(readr)
+library(DT)
+library(tidyverse)
+library(plotly)
+
+Dados_empresa <- read.csv("Month_Value_1.csv")
+
+mode <- function(codes){
+  which.max(tabulate(codes))
+}
+
+
+```
+
+# Visualizações 
+
+## Barra lateral {.sidebar}
+
+Buscamos trazer uma visão detalhada por gráficos e tabelas contendo métricas importantes de determinada empresa. São elas: sua receita mensal, total de vendas realizadas mensalmente, custo médio de produto mensal e ,por fim, a folha salarial anual (que se mantém constante durantes os meses).
+
+Para isso é necessário que o usuário selecione o ano de visualização desejado e escolha também a métrica preterida.
+
+```{r}
+
+selectInput(inputId = "tempo_1", label = "Selecione o Ano",
+  choices = c("2015", "2016", "2017", "2018", "2019", "2020"), selected = "2018")
+
+selectInput(inputId = "metrica_1", label = "Selecione a Métrica",
+  choices = c("Receita", "Número_de_vendas", "Custo_médio", "Folha_de_pagamento_média_anual"), selected = "Receita")
+
+dados <- reactive({
+  Dados_empresa_2 <- Dados_empresa %>% 
+      filter(Ano == input$tempo_1)
+      select(Dados_empresa, input$metrica_1, Ano, Mês)
+  return(Dados_empresa_2) })
+
+```
+
+O dataset utilizado pode ser visto aqui: https://www.kaggle.com/datasets/podsyp/time-series-starter-dataset?resource=download
+
+## Column {.tabset}
+
+### Gráfico de linhas
+
+```{r}
+
+renderPlot({
+  ggplot(dados(), aes(x = factor(Mês), y = !!sym(input$metrica_1))) + 
+  geom_line(aes(group=1)) + geom_point(color = "red", size = 8) + theme_bw()
+})
+```
+
+### Histograma
+
+```{r}
+#Talvez esse histograma seja um gráfico de barras ?
+renderPlot({
+  ggplot(dados(), aes(x = Mês, y = !!sym(input$metrica_1))) +
+  geom_histogram(stat = "identity", color = "black", fill = "red") +
+  theme(legend.position = "top",axis.text.x = element_text(angle = 90, hjust = 1, vjust = .5)) 
+})
+
+```
+
+
+### Boxplot
+
+```{r}
+
+renderPlot({
+  ggplot(dados(), aes(factor(Mês), !!sym(input$metrica_1))) +
+  geom_boxplot(fill = "red", color = "black") +
+  geom_smooth(method = "lm", se=FALSE, color="black", aes(group=1)) #Não tenho certeza se era pra ser assim, perguntar a algum monitor
+})
+
+```
+
+### Tabela
+
+```{r}
+
+renderDataTable({ #Não tô conseguindo ajustar as medidas pra dar o valor na table
+  dados() %>%
+    filter(
+      'Media' == mean(dados()[[input$metrica_1]]),
+      'Mediana' == median(dados()$var_save),
+      'Moda' == mode(dados()$input$var_save),
+      'Desvio Padrão' == sd(data()$var_save),
+      'Mínimo' == min(data()$input$var_save),
+      'Máximo' == max(data()$input$var_save)
+       ) %>%
+  
+   datatable(rownames = False) %>%
+   formatRound(c('Média', 'Mediana', 'Moda', 'Desvio Padrão', 'Mínimo', 'Máximo'), digits = 2)
+})
+
+
+```
+
+# Comparações {data-icon="fa-table"} 
+
+## Barra lateral {.sidebar}
+
+Buscamos trazer uma visão detalhada por gráficos e tabelas contendo métricas importantes de determinada empresa. São elas: sua receita mensal, total de vendas realizadas mensalmente, custo médio de produto mensal e ,por fim, a folha salarial anual (que se mantém constante durantes os meses).
+
+Para isso é necessário que o usuário selecione o ano de visualização desejado e escolha também as duas métricas preteridas.
+
+```{r}
+
+selectInput(inputId = "tempo_2", label = "Selecione o Ano",
+  choices = c("2015", "2016", "2017", "2018", "2019", "2020"), selected = "2018")
+
+selectInput(inputId = "metrica_2", label = "Selecione a Primeira Métrica",
+  choices = c("Receita", "Número_de_vendas", "Número_de_vendas", "Custo_médio", "Folha_de_pagamento_média_anual"), selected = "Receita")
+
+selectInput(inputId = "metrica_3", label = "Selecione a Segunda Métrica",
+  choices = c("Receita", "Número_de_vendas", "Número_de_vendas", "Custo_médio", "Folha_de_pagamento_média_anual"), selected = "Custo_médio")
+
+dados_2 <- reactive({
+  Dados_empresa_3 <- Dados_empresa %>% 
+      filter(Ano == input$tempo_2)
+      select(Dados_empresa, input$metrica_3, input$metrica_2, Ano, Mês)
+  return(Dados_empresa_3) })
+
+```
+
+O dataset utilizado pode ser visto aqui: https://www.kaggle.com/datasets/podsyp/time-series-starter-dataset?resource=download
+
+## Column {data-width= 1080} {.tabset}
+
+### Gráfico de linhas
+
+```{r}
+
+renderPlot({
+  ggplot(dados_2(), aes(x = factor(Mês), y = !!sym(input$metrica_2))) + 
+  geom_line(aes(group=1), color = "blue") + geom_point(size = 4) + theme_bw()
+
+})
+
+```
+
+### Gráfico de barras
+
+```{r}
+
+renderPlot({
+  ggplot(dados_2(), aes(x = Mês, y = !!sym(input$metrica_2))) +
+  geom_bar(stat = "identity", fill = "blue", color = "black")  +
+  theme(legend.position = "top",axis.text.x = element_text(angle = 90, hjust = 1, vjust = .5))
+
+})
+
+```
+
+### Scatterplot
+
+```{r}
+
+renderPlot ({
+  ggplot(dados_2(), aes(x = Mês, y = !!sym(input$metrica_2), color="blue")) +
+  geom_point(stat='identity', position='identity', color="blue", size=16) +
+  geom_smooth(method='lm', aes(group=1)) +
+  theme(axis.text.x = element_text(angle=-45, vjust=0.5))
+})
+
+```
+
+<!-- ### Tabela -->
+
+<!-- ```{r} -->
+
+<!-- ``` -->
+
+## Column {data-width= 1080} {.tabset}
+
+### Gráfico de linhas
+
+```{r}
+
+renderPlot({
+  ggplot(dados_2(), aes(x = factor(Mês), y = !!sym(input$metrica_3))) + 
+  geom_line(aes(group=1), color = "red") + geom_point(size = 4) + theme_bw()
+  
+})
+
+```
+
+### Gráfico de barras
+
+```{r}
+
+renderPlot({
+  ggplot(dados_2(), aes(x = Mês, y = !!sym(input$metrica_3))) +
+  geom_bar(stat = "identity", fill = "red", color = "black") +
+  theme(legend.position = "top",axis.text.x = element_text(angle = 90, hjust = 1, vjust = .5))
+})
+
+```
+
+### Scatterplot
+
+```{r}
+
+renderPlot ({
+  ggplot(dados_2(), aes(x = Mês, y = !!sym(input$metrica_3), color="black")) +
+  geom_point(stat='identity', position='identity', color="red", size=16) +
+  geom_smooth(method='lm', aes(group=1)) +
+  theme(axis.text.x=element_text(angle=-45, vjust=0.5))
+})
+
+```
+
