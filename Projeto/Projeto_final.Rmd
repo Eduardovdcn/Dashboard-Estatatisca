@@ -84,7 +84,7 @@ renderPlot({
 ```{r}
 
 renderPlot({
-  ggplot(dados(), aes(factor(Mês), !!sym(input$metrica_1))) +
+  ggplot(dados(), aes(factor(Ano), !!sym(input$metrica_1))) +
   geom_boxplot(fill = "red", color = "black") +
   geom_smooth(method = "lm", se=FALSE, color="black", aes(group=1)) #Não tenho certeza se era pra ser assim, perguntar a algum monitor
 })
@@ -95,19 +95,19 @@ renderPlot({
 
 ```{r}
 
-renderDataTable({ #Não tô conseguindo ajustar as medidas pra dar o valor na table
+renderDataTable({ 
   dados() %>%
-    filter(
-      'Media' == mean(dados()[[input$metrica_1]]),
-      'Mediana' == median(dados()$var_save),
-      'Moda' == mode(dados()$input$var_save),
-      'Desvio Padrão' == sd(data()$var_save),
-      'Mínimo' == min(data()$input$var_save),
-      'Máximo' == max(data()$input$var_save)
-       ) %>%
+      group_by(Ano) %>%
+      summarise(Média = mean(!!sym(input$metrica_1)),
+              Mediana = median(!!sym(input$metrica_1)),
+              Moda = mode(!!sym(input$metrica_1)),
+              Desvio_Padrão = sd(!!sym(input$metrica_1)),
+              Máximo = max(!!sym(input$metrica_1)),
+              Mínimo = min(!!sym(input$metrica_1))
+              ) %>%
   
-   datatable(rownames = False) %>%
-   formatRound(c('Média', 'Mediana', 'Moda', 'Desvio Padrão', 'Mínimo', 'Máximo'), digits = 2)
+  datatable(rownames = FALSE) %>%
+  formatRound(c('Média', 'Mediana', 'Moda', 'Desvio_Padrão', 'Mínimo', 'Máximo'), digits = 2)
 })
 
 
@@ -182,11 +182,24 @@ renderPlot ({
 
 ```
 
-<!-- ### Tabela -->
+### Tabela
 
-<!-- ```{r} -->
-
-<!-- ``` -->
+```{r}
+renderDataTable({ 
+  dados_2() %>%
+      group_by(Ano) %>%
+      summarise(Média = mean(!!sym(input$metrica_2)),
+              Mediana = median(!!sym(input$metrica_2)),
+              Moda = mode(!!sym(input$metrica_2)),
+              Desvio_Padrão = sd(!!sym(input$metrica_2)),
+              Máximo = max(!!sym(input$metrica_2)),
+              Mínimo = min(!!sym(input$metrica_2))
+              ) %>%
+  
+  datatable(rownames = FALSE) %>%
+  formatRound(c('Média', 'Mediana', 'Moda', 'Desvio_Padrão', 'Mínimo', 'Máximo'), digits = 2)
+})
+```
 
 ## Column {data-width= 1080} {.tabset}
 
@@ -219,11 +232,30 @@ renderPlot({
 ```{r}
 
 renderPlot ({
-  ggplot(dados_2(), aes(x = Mês, y = !!sym(input$metrica_3), color="black")) +
+  ggplot(dados_2(), aes(x = Mês, y = !!sym(input$metrica_3), color="red")) +
   geom_point(stat='identity', position='identity', color="red", size=16) +
   geom_smooth(method='lm', aes(group=1)) +
   theme(axis.text.x=element_text(angle=-45, vjust=0.5))
 })
 
+```
+
+### Tabela
+
+```{r}
+renderDataTable({ 
+  dados_2() %>%
+      group_by(Ano) %>%
+      summarise(Média = mean(!!sym(input$metrica_3)),
+              Mediana = median(!!sym(input$metrica_3)),
+              Moda = mode(!!sym(input$metrica_3)),
+              Desvio_Padrão = sd(!!sym(input$metrica_3)),
+              Máximo = max(!!sym(input$metrica_3)),
+              Mínimo = min(!!sym(input$metrica_3))
+              ) %>%
+  
+  datatable(rownames = FALSE) %>%
+  formatRound(c('Média', 'Mediana', 'Moda', 'Desvio_Padrão', 'Mínimo', 'Máximo'), digits = 2)
+})
 ```
 
