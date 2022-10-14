@@ -38,15 +38,15 @@ Para isso é necessário que o usuário selecione o ano de visualização deseja
 
 ```{r}
 
-selectInput(inputId = "tempo_1", label = "Selecione o Ano",
-  choices = c("2015", "2016", "2017", "2018", "2019", "2020"), selected = "2018")
+sliderInput(inputId = "tempo_1", label = "Selecione o Ano",
+  min = 2015, max = 2020, value = c(2016, 2019), step = 1)
 
 selectInput(inputId = "metrica_1", label = "Selecione a Métrica",
   choices = c("Receita", "Número_de_vendas", "Custo_médio", "Folha_de_pagamento_média_anual"), selected = "Receita")
 
 dados <- reactive({
   Dados_empresa_2 <- Dados_empresa %>% 
-      filter(Ano == input$tempo_1)
+      filter(Ano >= input$tempo_1[1] & Ano <= input$tempo_1[2])
       select(Dados_empresa, input$metrica_1, Ano, Mês)
   return(Dados_empresa_2) })
 
@@ -69,7 +69,6 @@ renderPlot({
 ### Histograma
 
 ```{r}
-#Talvez esse histograma seja um gráfico de barras ?
 renderPlot({
   ggplot(dados(), aes(x = Mês, y = !!sym(input$metrica_1))) +
   geom_histogram(stat = "identity", color = "black", fill = "red") +
@@ -122,9 +121,8 @@ Buscamos trazer uma visão detalhada por gráficos e tabelas contendo métricas 
 Para isso é necessário que o usuário selecione o ano de visualização desejado e escolha também as duas métricas preteridas.
 
 ```{r}
-
-selectInput(inputId = "tempo_2", label = "Selecione o Ano",
-  choices = c("2015", "2016", "2017", "2018", "2019", "2020"), selected = "2018")
+sliderInput(inputId = "tempo_2", label = "Selecione o Ano",
+  min = 2015, max = 2020, value = c(2016, 2019), step = 1)
 
 selectInput(inputId = "metrica_2", label = "Selecione a Primeira Métrica",
   choices = c("Receita", "Número_de_vendas", "Número_de_vendas", "Custo_médio", "Folha_de_pagamento_média_anual"), selected = "Receita")
@@ -134,7 +132,7 @@ selectInput(inputId = "metrica_3", label = "Selecione a Segunda Métrica",
 
 dados_2 <- reactive({
   Dados_empresa_3 <- Dados_empresa %>% 
-      filter(Ano == input$tempo_2)
+      filter(Ano >= input$tempo_2[1] & Ano <= input$tempo_2[2])
       select(Dados_empresa, input$metrica_3, input$metrica_2, Ano, Mês)
   return(Dados_empresa_3) })
 
