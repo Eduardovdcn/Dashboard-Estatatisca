@@ -1,6 +1,6 @@
 ---
 title: "Dados de uma empresa"
-author: "Eduardo Vinnícius (evdcn) e Brenda ... ()"
+author: "Eduardo Vinnícius (evdcn) e Brenda Guerra (bvga)"
 runtime: shiny
 output: 
   flexdashboard::flex_dashboard:
